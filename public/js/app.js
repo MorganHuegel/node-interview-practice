@@ -1,8 +1,7 @@
 /*global jQuery, Handlebars, Router */
-'use strict';
+"use strict";
 
 jQuery(function ($) {
-
   const ENTER_KEY = 13;
   const ESCAPE_KEY = 27;
 
@@ -11,16 +10,16 @@ jQuery(function ($) {
       this._todos = data;
     },
     setFilter(filter) {
-      this.filter = (filter) ? filter : 'all';
+      this.filter = filter ? filter : "all";
     },
     insert(item) {
       this._todos.push(item);
     },
     getTodoById(id) {
-      return this._todos.find(todo => todo.id === id);
+      return this._todos.find((todo) => todo.id === id);
     },
     deleteTodoById(id) {
-      this._todos = this._todos.filter(todo => todo.id !== id);
+      this._todos = this._todos.filter((todo) => todo.id !== id);
     },
     updateTodoById(id, update) {
       let todo = this.getTodoById(id);
@@ -44,9 +43,9 @@ jQuery(function ($) {
     },
     getFilteredTodos: function () {
       switch (this.filter) {
-        case 'active':
+        case "active":
           return this.getActiveTodos();
-        case 'completed':
+        case "completed":
           return this.getCompletedTodos();
         default:
           return this._todos;
@@ -60,47 +59,48 @@ jQuery(function ($) {
     },
     create: function (obj) {
       return fetch(this.baseUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
-        body: obj ? JSON.stringify(obj) : null
-      }).then(res => res.json());
+        body: obj ? JSON.stringify(obj) : null,
+      }).then((res) => res.json());
     },
     read: function () {
       return fetch(this.baseUrl, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Accept': 'application/json'
-        }
-      }).then(res => res.json());
+          Accept: "application/json",
+        },
+      }).then((res) => res.json());
     },
     update: function (id, obj) {
       return fetch(`${this.baseUrl}/${id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
-        body: obj ? JSON.stringify(obj) : null
-      }).then(res => res.json());
+        body: obj ? JSON.stringify(obj) : null,
+      }).then((res) => res.json());
     },
     delete: function (id) {
       return fetch(`${this.baseUrl}/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Accept': 'application/json'
-        }
-      }).then(res => res.text());
-    }
+          Accept: "application/json",
+        },
+      }).then((res) => res.text());
+    },
   };
 
   const app = {
     init: function () {
-      const hash = location.hash.split('/')[1];
+      const hash = location.hash.split("/")[1];
       store.setFilter(hash);
-      api.read()
+      api
+        .read()
         .then((data) => {
           store.setTodos(data);
           this.bindEvents();
@@ -111,39 +111,47 @@ jQuery(function ($) {
         });
     },
     bindEvents: function () {
-      $(window).on('hashchange', this.updateFilter.bind(this));
-      $('#new-todo').on('keyup', this.createTodo.bind(this));
-      $('#toggle-all').on('change', this.toggleAll.bind(this));
-      $('#footer').on('click', '#clear-completed', this.destroyCompleted.bind(this));
-      $('#todo-list')
-        .on('change', '.toggle', this.toggleDone.bind(this))
-        .on('dblclick', 'label', this.editMode.bind(this))
-        .on('keyup', '.edit', this.editKeyup.bind(this))
-        .on('focusout', '.edit', this.updateTitle.bind(this))
-        .on('click', '.destroy', this.deleteTodo.bind(this));
+      $(window).on("hashchange", this.updateFilter.bind(this));
+      $("#new-todo").on("keyup", this.createTodo.bind(this));
+      $("#toggle-all").on("change", this.toggleAll.bind(this));
+      $("#footer").on(
+        "click",
+        "#clear-completed",
+        this.destroyCompleted.bind(this)
+      );
+      $("#todo-list")
+        .on("change", ".toggle", this.toggleDone.bind(this))
+        .on("dblclick", "label", this.editMode.bind(this))
+        .on("keyup", ".edit", this.editKeyup.bind(this))
+        .on("focusout", ".edit", this.updateTitle.bind(this))
+        .on("click", ".destroy", this.deleteTodo.bind(this));
     },
     updateFilter: function () {
-      store.filter = location.hash.split('/')[1];
+      store.filter = location.hash.split("/")[1];
       this.render();
     },
     render: function () {
       const todos = store.getFilteredTodos();
       const todosFragments = todos.map((item) => this.generateTodo(item));
-      $('#todo-list').html(todosFragments.join(''));
+      $("#todo-list").html(todosFragments.join(""));
 
-      $('#main').toggle(todos.length > 0);
-      $('#toggle-all').prop('checked', store.getActiveTodos().length === 0);
+      $("#main").toggle(todos.length > 0);
+      $("#toggle-all").prop("checked", store.getActiveTodos().length === 0);
 
       const footerFragment = this.generateFooter();
-      $('#footer').toggle(store.getAllTodos().length > 0).html(footerFragment);
+      $("#footer")
+        .toggle(store.getAllTodos().length > 0)
+        .html(footerFragment);
 
-      $('#new-todo').focus();
+      $("#new-todo").focus();
     },
     generateTodo(item) {
       return `
-        <li class="${item.completed ? 'completed' : ''}" data-id="${item.id}">
+        <li class="${item.completed ? "completed" : ""}" data-id="${item.id}">
           <div class="view">
-            <input class="toggle" type="checkbox" ${item.completed ? 'checked' : ''}>
+            <input class="toggle" type="checkbox" ${
+              item.completed ? "checked" : ""
+            }>
             <label>${item.title}</label>
             <button class="destroy"></button>
           </div>
@@ -156,22 +164,34 @@ jQuery(function ($) {
       const completedTodosCount = todoCount - activeTodoCount;
 
       return `
-        <span id="todo-count"><strong>${activeTodoCount}</strong> ${activeTodoCount === 1 ? 'item' : 'items'} left</span>
+        <span id="todo-count"><strong>${activeTodoCount}</strong> ${
+        activeTodoCount === 1 ? "item" : "items"
+      } left</span>
         <ul id="filters">
           <li>
-            <a class="${this.filter === 'all' ? 'selected' : ''}" href="#/all">All</a>
+            <a class="${
+              this.filter === "all" ? "selected" : ""
+            }" href="#/all">All</a>
           </li>
           <li>
-            <a class="${this.filter === 'active' ? 'selected' : ''}" href="#/active">Active</a>
+            <a class="${
+              this.filter === "active" ? "selected" : ""
+            }" href="#/active">Active</a>
           </li>
           <li>
-            <a class="${this.filter === 'completed' ? 'selected' : ''}" href="#/completed">Completed</a>
+            <a class="${
+              this.filter === "completed" ? "selected" : ""
+            }" href="#/completed">Completed</a>
           </li>
         </ul>
-        ${completedTodosCount ? '<button id="clear-completed">Clear completed</button>' : ''}`;
+        ${
+          completedTodosCount
+            ? '<button id="clear-completed">Clear completed</button>'
+            : ""
+        }`;
     },
     toggleAll: function (event) {
-      const isChecked = $(event.target).prop('checked');
+      const isChecked = $(event.target).prop("checked");
       const promises = [];
       store.getAllTodos().forEach((todo) => {
         todo.completed = isChecked;
@@ -197,7 +217,7 @@ jQuery(function ($) {
       Promise.all(promises)
         .then(() => {
           store.setTodos(store.getActiveTodos());
-          this.filter = 'all';
+          this.filter = "all";
           this.render();
         })
         .catch(function (err) {
@@ -205,7 +225,7 @@ jQuery(function ($) {
         });
     },
     getIdFromEl: function (el) {
-      return $(el).closest('li').data('id');
+      return $(el).closest("li").data("id");
     },
     createTodo: function (e) {
       const input = $(e.target);
@@ -215,34 +235,38 @@ jQuery(function ($) {
         return;
       }
 
-      api.create({ title })
+      api
+        .create({ title })
         .then((data) => {
           store.insert(data);
-          input.val('');
+          input.val("");
           this.render();
-        }).catch((err) => {
+        })
+        .catch((err) => {
           console.error(err);
         });
     },
     toggleDone: function (e) {
       const id = this.getIdFromEl(e.target);
       const todo = store.getTodoById(id);
-console.log(todo)
+      console.log(todo);
       const updatedTodo = {
         title: todo.title,
-        completed: !todo.completed
+        completed: !todo.completed,
       };
 
-      api.update(id, updatedTodo)
-        .then(res => {
+      api
+        .update(id, updatedTodo)
+        .then((res) => {
           store.updateTodoById(res.id, res);
           this.render();
-        }).catch((err) => {
+        })
+        .catch((err) => {
           console.error(err);
         });
     },
     editMode: function (e) {
-      const input = $(e.target).closest('li').addClass('editing').find('.edit');
+      const input = $(e.target).closest("li").addClass("editing").find(".edit");
       input.val(input.val()).focus();
     },
     editKeyup: function (event) {
@@ -272,20 +296,23 @@ console.log(todo)
 
       const updatedTodo = {
         title: val,
-        completed: todo.completed
+        completed: todo.completed,
       };
 
-      api.update(id, updatedTodo)
-        .then(res => {
+      api
+        .update(id, updatedTodo)
+        .then((res) => {
           store.updateTodoById(res.id, res);
           this.render();
-        }).catch((err) => {
+        })
+        .catch((err) => {
           console.error(err);
         });
     },
     deleteTodo: function (event) {
       const id = this.getIdFromEl(event.target);
-      api.delete(id)
+      api
+        .delete(id)
         .then(() => {
           store.deleteTodoById(id);
           this.render();
@@ -293,12 +320,11 @@ console.log(todo)
         .catch((err) => {
           console.error(err);
         });
-    }
+    },
   };
 
   let params = new URLSearchParams(location.search.slice(1));
-  let baseUrl = `${window.location.origin}/v1/todos`;
+  let baseUrl = `${window.location.origin}/v1/orders`;
   api.init(baseUrl);
   app.init();
-
 });

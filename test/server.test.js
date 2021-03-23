@@ -25,7 +25,6 @@ describe("Todo API:", function () {
       height: 1.25,
       payment_amount: 43,
     },
-    ,
     {
       customer_name: "Dr. Evil",
       width: 14,

@@ -35,7 +35,7 @@ const serializeOrder = (order) => ({
   submitted_ts: order.submitted_ts,
 });
 
-app.route("/v1/orders").get(/* Your code here */).post(/* Your code here */);
+// app.route("/v1/orders").get(/* Your code here */).post(/* Your code here */);
 
 app
   .route("/v1/orders/:order_id")
