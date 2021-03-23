@@ -1,100 +1,95 @@
-require('dotenv').config()
-const express = require('express')
-const morgan = require('morgan')
-const cors = require('cors')
-const helmet = require('helmet')
-const { NODE_ENV } = require('./config')
-const errorHandler = require('./middleware/error-handler')
-const TodoService = require('./todo/todo-service')
-const xss = require('xss')
-const jsonParser = express.json()
-const path = require('path')
+require("dotenv").config();
+const express = require("express");
+const morgan = require("morgan");
+const cors = require("cors");
+const helmet = require("helmet");
+const { NODE_ENV } = require("./config");
+const errorHandler = require("./middleware/error-handler");
+const OrderService = require("./order/order-service");
+const xss = require("xss");
+const jsonParser = express.json();
+const path = require("path");
 
-const app = express()
+const app = express();
 
-const morganOption = (NODE_ENV === 'production')
-  ? 'tiny'
-  : 'common';
+const morganOption = NODE_ENV === "production" ? "tiny" : "common";
 
-app.use(morgan(morganOption, {
-  skip: () => NODE_ENV === 'test',
-}))
-app.use(cors())
-app.use(helmet())
+app.use(
+  morgan(morganOption, {
+    skip: () => NODE_ENV === "test",
+  })
+);
+app.use(cors());
+app.use(helmet());
 
-app.use(express.static('public'))
+app.use(express.static("public"));
 
-const serializeTodo = todo => ({
-  id: todo.id,
-  title: xss(todo.title),
-  completed: todo.completed
-})
+const serializeOrder = (order) => ({
+  id: order.id,
+  customer_name: xss(order.customer_name),
+  width: order.width,
+  length: order.length,
+  height: order.height,
+  payment_amount: order.payment_amount.toFixed(2),
+  completed: order.completed,
+  submitted_ts: order.submitted_ts,
+});
+
+app.route("/v1/orders").get(/* Your code here */).post(/* Your code here */);
 
 app
-  .route('/v1/todos')
-  .get(/* Your code here */)
-  .post(/* Your code here */)
-
-app
-  .route('/v1/todos/:todo_id')
+  .route("/v1/orders/:order_id")
   .all((req, res, next) => {
-    if(isNaN(parseInt(req.params.todo_id))) {
+    if (isNaN(parseInt(req.params.order_id))) {
       return res.status(404).json({
-        error: { message: `Invalid id` }
-      })
+        error: { message: `Invalid id` },
+      });
     }
-    TodoService.getTodoById(
-      req.app.get('db'),
-      req.params.todo_id
-    )
-      .then(todo => {
-        if (!todo) {
+    OrderService.getOrderById(req.app.get("db"), req.params.order_id)
+      .then((order) => {
+        if (!order) {
           return res.status(404).json({
-            error: { message: `Todo doesn't exist` }
-          })
+            error: { message: `Order doesn't exist` },
+          });
         }
-        res.todo = todo
-        next()
+        res.order = order;
+        next();
       })
-      .catch(next)
+      .catch(next);
   })
   .get((req, res, next) => {
-    res.json(serializeTodo(res.todo))
+    res.json(serializeOrder(res.order));
   })
   .delete((req, res, next) => {
-    TodoService.deleteTodo(
-      req.app.get('db'),
-      req.params.todo_id
-    )
-      .then(numRowsAffected => {
-        res.status(204).end()
+    OrderService.deleteOrder(req.app.get("db"), req.params.order_id)
+      .then((numRowsAffected) => {
+        res.status(204).end();
       })
-      .catch(next)
+      .catch(next);
   })
   .patch(jsonParser, (req, res, next) => {
-    const { title, completed } = req.body
-    const todoToUpdate = { title, completed }
+    const { customer_name, completed = false } = req.body;
+    const orderToUpdate = { customer_name, completed };
 
-    const numberOfValues = Object.values(todoToUpdate).filter(Boolean).length
+    const numberOfValues = Object.values(orderToUpdate).filter(Boolean).length;
     if (numberOfValues === 0)
       return res.status(400).json({
         error: {
-          message: `Request body must content either 'title' or 'completed'`
-        }
-      })
+          message: `Request body must content either 'customer_name' or 'completed'`,
+        },
+      });
 
-    TodoService.updateTodo(
-      req.app.get('db'),
-      req.params.todo_id,
-      todoToUpdate
+    OrderService.updateOrder(
+      req.app.get("db"),
+      req.params.order_id,
+      orderToUpdate
     )
-      .then(updatedTodo => {
-        res.status(200).json(serializeTodo(updatedTodo[0]))
+      .then((updatedOrder) => {
+        res.status(200).json(serializeOrder(updatedOrder[0]));
       })
-      .catch(next)
-  })
+      .catch(next);
+  });
 
+app.use(errorHandler);
 
-app.use(errorHandler)
-
-module.exports = app
+module.exports = app;
